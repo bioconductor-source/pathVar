@@ -1,0 +1,56 @@
+pathVar 0.99.3 (2015-09-30)
+---------------------------
+In sigOneSample, there was a problem when building the list "category". If for each significant pathway all the clusters were significant, then it was building a matrix instead of a list. So we added an if statement to transform the matrix into a list.
+
+We added a column in tablePway in the functions pathVarOneSample and pathVarTwoSamplesDisc, which is the percentage of genes in our dataset related to the total number of genes in each pathway.
+
+We decided to add a new function for the two samples case that compare both group using the distribution count (like in the one sample case). So we changed the following function  names pathVarTwoSamples->pathVarTwoSamplesCont, sigTwoSamples->sigTwoSamplesCont and plotTwoSamples->plotTwoSamplesCont.
+
+We added new functions: pathVarTwoSamplesDisc, sigTwoSamplesDisc and plotTwoSamplesDisc.
+
+We added two new classes: geneDistributionSet3 and significantPathway3.
+
+In significantPathway and significantPathway2 we changed: genesInSigPways->genesInSigPways1 to make saveAsPDF work for the three cases.
+
+Also, in function sigTwoSamplesDisc there was an error when creating a significantPathway3 object if there were no significant pathways. This was due to the property thresPValue being made into an empty list instead of a numeric vector. To correct this we declared thresPValue as an empty numeric vector instead of an empty list.
+
+Removed import reshape from the DESCRIPTION and NAMESPACE files because data.table already does this.
+
+fixed indentation in R code and increased line widths to 90.
+
+changed the “cop-and-append’ pattern when filling pways$GENES list to “pre-allocate and fill” where we allocate space in the list and then fill it.
+
+Changed varStat parameter to restrict selection on inputs to “sd”, ”mean”, ”mad”, or “cv” in functions pathVarOneSample, pathVarTwoSamplesCont, and pathVarTwoSamplesDisc
+
+Changed test parameter to restrict selection on inputs to “chisq” or “exact” in functions pathVarOneSample and pathVarTwoSamplesDisc 
+
+Use rowMeans() function instead of apply statement over matrix
+
+Use lengths() function instead of supply statement 
+
+Constructed objects of classes once instead of sequentially.
+
+Removed pathVar-internal manual page.
+
+pathVar 0.99.2 (2015-08-21)
+---------------------------
+
+Changed confusing variable names “plotPway” to “plotPathway” in plotTwoSamples and plotOneSample functions so the function plotPway consistently works.
+
+Corrected error at the beginning of plotTwoSamples and plotOneSample. We are splitting the title into two parts when the number of character is more than 39. The split occurs at the first word where the cumulative sum of the characters is more than 34. The problem was if the title is more than 39 characters and the cumulative sum of every words but the last is less than 34. We added an if statement in this case to split the title at the second-to-last word. 
+
+We also removed the statement "genes[noSigCat]" inside the if statement at the end of the sigOneSample function because we wanted to output all the genes in the significant pathway, not only the ones in the significant category.
+
+We also changed "category[noSigCat]=0" to category[[noSigCat]]=0 inside the if statement at the end of the sigOneSample function 
+
+pathVar 0.99.1 (2015-08-21)
+---------------------------
+
+Subscribed to bioc-devel mailing list.
+
+pathVar 0.99.0 (2015-07-10)
+---------------------------
+
+First Bioconductor Release
+
+See vignette(“pathVar") for an introduction to the package.

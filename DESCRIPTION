@@ -1,0 +1,21 @@
+Package: pathVar
+Type: Package
+Title: Methods to Find Pathways with Significantly Different
+        Variability
+Version: 0.99.3
+Date: 2015-02-18
+Author: Jessica Mar, Laurence de torrente, Samuel Zimmerman
+Maintainer: Samuel Zimmerman <sezimmer@einstein.yu.edu>
+Description: This package contains the functions to find the pathways
+        that have significantly different variability than a reference
+        gene set. It also finds the categories from this pathway that
+        are significant where each category is a cluster of genes. The
+        genes are separated into clusters by their level of
+        variability.
+License: LGPL (>= 2.0)
+Collate: classdef.R pipeline.final.R
+LazyData: true
+Depends: R (>= 3.2.2), methods, ggplot2, gridExtra
+Imports: EMT, mclust, Matching, data.table
+biocViews: GeneticVariability, GeneSetEnrichment, Pathways
+NeedsCompilation: no

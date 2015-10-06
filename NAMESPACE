@@ -1,0 +1,6 @@
+import(ggplot2, gridExtra, data.table, methods)
+importFrom(EMT, multinomial.test)
+importFrom(mclust, mclustBIC, Mclust)
+importFrom(Matching, ks.boot)
+export(makeDBList,pathVarOneSample,pathVarTwoSamplesCont,sigPway,plotPway,saveAsPDF,getGenes,diagnosticsVarPlots,pathVarTwoSamplesDisc)
+exportClasses(geneDistributionSet, significantPathway ,geneDistributionSet2, significantPathway2, geneSet, geneDistributionSet3, significantPathway3)

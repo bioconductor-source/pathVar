@@ -1,0 +1,293 @@
+% -*- mode: noweb; noweb-default-code-mode: R-mode; -*-
+%In order to have the code running you have to load dat.mat, pways.reactome and pways.kegg
+%\VignetteIndexEntry{Tutorial on How to Use the  Functions in the \texttt{PathVar} Package}
+\documentclass[a4paper]{article}
+
+\title{How to use the \texttt{pathVar} package}
+%\author{Laurence de Torrent}
+
+\SweaveOpts{echo=FALSE}
+\usepackage{a4wide}
+\usepackage[utf8x]{inputenc} 
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+
+
+\usepackage{float}
+\newtheorem{exa}{Example}[section]
+\newtheorem{rem}{Remarks}[section]
+
+
+\begin{document}
+
+
+\maketitle
+<<echo=False,print=False>>=
+ options(width=80)
+ library(pathVar)
+@
+
+
+\section{Introduction}
+
+This package studies the variability of a dataset related to different pathways. For each pathway, how does the variability change compared to the whole set of genes from our dataset? Do we have an unusually high number of low variability genes in a particular pathway? These are some of the questions our package will answer. A summary of the pipeline of the package may be found in Figure 1.
+
+The eight main functions are:
+\begin{itemize}
+
+\item \texttt{diagnosticsVarPlot} give you 3 plots one for the standard deviation (sd), one for median absolute deviation (mad) and one for coefficient of variation (cv) against the mean to help you decide which one would be the best with your dataset. It also return the correlation between each variability statistics and the mean.
+\item \texttt{makeDBList} puts your own list of pathways and genes related to them into a list in a good format.
+\item \texttt{pathVarOneSample} classifies your genes into one to four clusters with respect to sd, mad, cv or mean. Then, it compares the counts of genes in each class from your dataset in one pathway with the counts of the genes in each class from the whole dataset. For that, it uses a Chi-square or an exact test. You can give your own list of pathways (using the output of \texttt{makeDBList}) or use Reactome and KEGG pathways that are already included.
+
+\item \texttt{pathVarTwoSamplesCont} It splits the samples into two groups that you define. It compares the density of the variability (sd, mad, cv) or of the mean of the genes in a pathway from group 1 with the density from group 2. For that, it uses the bootstrap Kolmogorov-smirnov test. You can give your own list of pathways (using the output of \texttt{makeDBList}) or use Reactome and KEGG pathways that are already included.
+
+\item \texttt{pathVarTwoSamplesDisc} It splits the samples into two groups that you define. It classifies your genes into three clusters with respect to sd, mad, cv or mean for each group. It compares the counts of genes in each class in a pathway from group 1 the counts of genes in each class from group 2 in the same pathway. For that, it uses a Chi-square or an exact test. You can give your own list of pathways (using the output of \texttt{makeDBList}) or use Reactome and KEGG pathways that are already included.
+
+\item \texttt{sigPway} takes the output of \texttt{pathVarOneSample} or \texttt{pathVarTwoSamples} and will tell you which pathways are significant. For the one sample case, it will also tell you which categories are significant.
+
+
+\item \texttt{plotPway} plots the result of \texttt{pathVarOneSample} or \texttt{pathVarTwoSamples} for a chosen pathway. In the one sample case, the figure will contain the reference counts along with the plot of the chosen pathway. In the continuous two samples case, it will plot the two densities (one for each group) of the statistics (sd, mad, cv or mean) of the chosen pathway. In the discrete two samples case, the figure will contain the  counts from group 1 along with the counts of group 2 of the chosen pathway.
+
+
+
+\item \texttt{saveAsPDF} saves as a pdf the plots for the one or two samples case of the significant pathways or a chosen list of pathways.
+
+\item \texttt{getGenes} take the result of \texttt{pathVarTwoSamplesCont} and returns one list of genes for group 1 and one for group 2 of a chosen pathway having their statistics (sd, mad, cv or mean) inside a chosen interval. It also returns the set of all the genes from your dataset that belong to the chosen pathway.
+
+\end{itemize}
+
+\begin{figure} [H]
+  \begin{center}
+\includegraphics{outline_fig_2.pdf} 
+ \caption{Outline of the pathVar analysis.}
+ \end{center}
+\end{figure}
+
+
+
+Two pathway libraries are included: 
+\begin{itemize}
+\item KEGG with 272 pathways (\texttt{pways.kegg}).
+\item Reactome with 946 pathways (\texttt{pways.reactome}).
+\end{itemize}
+
+Each one of these two variables contain the pathname, related pathID (if any), the genes and the size of each pathway. 
+
+
+
+
+
+
+\section{Bock dataset}
+The Bock et al. (2011) data set has 20 human ESC lines, and 12 iPSC lines. We use this data set to illustrate the functionality of our pathVar package that has been created to make inferences on the functional consequences of expression variability. We downloaded the normalized microarray data sets (\url{http://www.medical-epigenomics.org/papers/broad_mirror/scorecard/index.html}). 
+
+In the package the dataset may be found under the name \texttt{bock}. The column names correspond to the samples with embryonic stem cells (hES) being ESC and induced pluripotent stem cells (hIPS) is iPSC.
+
+
+<<echo=True>>=
+samp.id <- colnames(bock) 
+cell.id <- character(length(samp.id))
+cell.id[grep("hES", samp.id)] <- "esc"
+cell.id[grep("hiPS", samp.id)] <- "ips"
+@
+For the one sample case we will use only the ESC and filter the genes with a low signal. We will keep the genes with at least 75\% of their samples greater than 1.
+<<echo=True>>=
+qc.esc <- apply(bock[,cell.id == "esc"], 1, function(x,ct){ sum(x >= ct) }, ct=1)
+bock.esc <- bock[qc.esc >= .75*sum(cell.id == "esc"),]
+@
+
+For the two samples case, we will keep the genes with at least 75\% of their samples greater than 1 for ESC and for iPSC.
+<<echo=True>>=
+qc.ips <- apply(bock[,cell.id == "ips"], 1, function(x,ct){ sum(x >= ct) }, ct=1)
+bock.esc_ips <- bock[qc.esc >= .75*sum(cell.id == "esc") &
+ qc.ips >= .75*sum(cell.id == "ips"),]
+@
+
+
+\section{How to choose the variability statistics to use?}
+
+This figure helps us visualize the association between a chosen variability statistic and the mean expression. In theory, we would like to choose the variability statistics that has the smallest correlation with the mean. For the Bock data, we see from Figure 2 that the standard deviation has the least correlation with the mean, therefore our pathVar analysis is based on the standard deviation.
+<<label=diagnostics,echo=True,fig=TRUE,include=FALSE,width=12>>=
+diagnosticsVarPlots(bock.esc)
+@
+\begin{figure} [H]
+  \begin{center}
+\includegraphics[width=10cm]{pathVar-diagnostics} 
+ \caption{Relationships between SD, MAD, CV with the mean.}
+ \end{center}
+\end{figure}
+
+
+
+\newpage
+\section{Finding pathways with a significant difference in expression variability for the whole dataset.}
+
+The steps of the function for the one sample case are as follow:
+ \begin{itemize}
+\item[1.] Compute a variability statistic (sd, mad, cv) for each gene. If you want to compare the result you obtain with the variability statistics to a regular analysis based on the mean, you have the option to choose mean as the statistic.
+\item[2.] Classify the genes with respect to the discrete levels of high, medium and low variability (at most 4 clusters).
+\item[3.] For each pathway, we extract the gene in our dataset and in which cluster they belong.
+\item[4.] For each pathway, we look at how the gene counts are distributed in each category and compare it to these counts derived from the whole dataset. The two possibilities to test this difference are the Chi-squared test or the multinomial exact test.
+\item[5.] We build a data table with the results step 4.
+\end{itemize}
+
+Two pathway libraries are already included in the package:  \texttt{pways.reactome} and  \texttt{pways.kegg}.It is possible through \texttt{makeDBList} to load any other database that is in a txt file.
+
+We will look at the difference in standard deviation using the Kegg pathways and the Chi-squared test.
+
+<<echo=True,print=False>>=
+resOneSam=pathVarOneSample(bock.esc,pways.kegg,test="chisq",varStat="sd")
+@
+The first three significant pathways from the table obtained with the Chi-squared test are:
+<<echo=True,print=False>>=
+resOneSam@tablePway[1:3]
+@
+
+For the Chi-squared test, if the pathway has less than 10 genes in our datasets, the analysis is not performed on the basis that the pathway is too small to determine if there is an enrichment in any category of expression variability. The list of these pathways is stored in a the slot named \texttt{NAPways}.
+<<echo=True,print=False>>=
+resOneSam@NAPways[1:3]
+@
+
+For this dataset, the genes were classified in 4 clusters representing different levels of expression variability.
+<<echo=True,print=False>>=
+resOneSam@numOfClus
+@
+
+
+We can also get the intersection of genes from our dataset belonging to two specified pathways "Staphylococcus aureus infection" and "Asthma":
+<<echo=True,print=False>>=
+intersect(names(resOneSam@genesInPway[["Staphylococcus aureus infection"]]),
+names(resOneSam@genesInPway[["Asthma"]]))
+@
+
+Now, we can use this result to look only at the significant pathways (with a p-value less than 0.05). As we are working with counts, the function \texttt{sigPway} will also use a binomial test to see which of the four categories were significant for each pathway.
+ 
+<<echo=True,print=False,results=hide>>=
+sigOneSam=sigPway(resOneSam,0.05)
+@
+
+The first pathway that is significant is the "ECM-receptor interactionn" and contains the following genes:
+<<echo=True,print=True>>=
+sigOneSam@genesInSigPways1[1]
+@
+
+As our genes were clustered into 4 categories, it would be interesting to have the list of pathways that have a difference in the 4th category (super highly variable genes).
+
+<<echo=True,print=True>>=
+names(which(unlist(lapply(sigOneSam@sigCatPerPway,function(x) 4%in% x))))
+@
+
+We could now look at the visualization of one of these pathways, for example the "ECM-receptor interaction". In Figure 3, you can see that the four variability categories were significantly different (p-value<0.05) from the reference counts.
+
+<<label=hist_1,echo=True,fig=TRUE,include=FALSE, width=10>>=
+plotPway(resOneSam,"ECM-receptor interaction",sigOneSam)
+@
+\begin{figure} [H]
+  \begin{center}
+\includegraphics[width=10cm]{pathVar-hist_1} 
+ \caption{Histogram of the "ECM-receptor interaction" pathway and the reference counts.}
+ \end{center}
+\end{figure}
+
+
+
+
+
+\section{Finding pathways with a significant difference in variability between two samples using the density.}
+In situations where we want to identify variability changes between two contrasting phenotypes, e.g. cancer vs normal or ESC vs IPS, the steps involved in this analysis are similar to the one sample case
+
+The steps of the function for the two samples case using the density are as follow:
+ \begin{itemize}
+\item[1.] Compute the variability statistics (sd, mad, cv or mean) for each gene 
+\item[2.] For each pathway, we extract the gene in our dataset.
+\item[3.] For each pathway, we evaluate how different the distribution of expression variability is between the two samples using a bootstrapped version of the Kolmogorov-Smirnov test.
+\item[4.] We build a data frame with the results of step 3.
+\end{itemize} 
+
+For our example, we will look at the difference in standard deviation using the Reactome pathways and the two groups: ESC and IPS.
+
+<<echo=True,print=False>>=
+grp=c(rep(1, sum(cell.id == "esc")), rep(2, sum(cell.id == "ips")))
+set.seed(1)
+resTwoSam=pathVarTwoSamplesCont(bock.esc_ips,pways.kegg,groups=as.factor(grp),varStat="sd")
+@
+The three most significant pathways are:
+<<echo=True,print=False>>=
+resTwoSam@tablePway[1:3]
+@
+
+Let us look now at the significant pathway (p-value<0.1) and the standard deviation of five of the genes belonging to the "Oxidative phosphorylation" (for illustration). On the first line is the standard deviation of ESC (group 1) and the second line is IPS (group 2).
+<<echo=True,print=False>>=
+sigTwoSam=sigPway(resTwoSam,0.1)
+rbind(resTwoSam@var1[sigTwoSam@genesInSigPways1[["Oxidative phosphorylation"]]]
+,resTwoSam@var2[sigTwoSam@genesInSigPways1[["Oxidative phosphorylation"]]])[,1:5]
+@
+
+We could now look at the visualization of this pathway "Oxidative phosphorylation". Figure 4 shows the density of expression variability for genes in this pathway for Group 1 (ESC) and Group 2 (IPS). We see that overall the IPS sample is shifted towards higher levels of variability compared to the ESC sample.
+<<label=dens_1,echo=True,fig=TRUE,include=FALSE, width=10>>=
+plotPway(resTwoSam,"Oxidative phosphorylation",sigTwoSam)
+@
+\begin{figure} [H]
+  \begin{center}
+\includegraphics[width=10cm]{pathVar-dens_1} 
+ \caption{Densities of the standard deviation of ESC (group 1) and IPS (group 2) for the "Oxidative phosphorylation" pathway.}
+ \end{center}
+\end{figure}
+
+A next step to ask is, based on Figure 4, what genes are the most different between the two groups for this pathway? We can use the \texttt{getGenes}  function to extract genes falling within a window of interest in the densities above, as specified by the user. For example, we can pick the window (0.25, 0.6) because at sd=0.25 this is where the two densities intersect and appear to deviate between the two groups.
+
+<<echo=True,print=False>>=
+genes=getGenes(resTwoSam,"Oxidative phosphorylation",c(0.25,0.6))
+setdiff(genes@genes1,genes@genes2)
+@
+
+
+\section{Finding pathways with a significant difference in variability between two samples using the distribution counts.}
+In situations where we want to identify variability changes between two contrasting phenotypes, we can also split the genes into several clusters (low, medium, high variability) and compared the distribution counts between the two groups.
+
+The steps of the function for the two samples case using the distribution counts are as follow:
+ \begin{itemize}
+\item[1.] Compute the variability statistics (sd, mad, cv or mean) for each gene 
+\item[2.] Classify the genes with respect to the discrete levels of high, medium and low variability for the dataset corresponding to group 1 and the dataset corresponding to group 2  (3 clusters based on 33 and 66 percentile with all the samples).
+\item[3.] For each pathway, we extract the gene in our dataset and in which cluster they belong.
+\item[4.] For each pathway, we look at how the gene counts are distributed in each category for group 1 and compare it to these counts derived from group 2. The two possibilities to test this difference are the Chi-squared test or the multinomial exact test.
+
+\item[5.] We build a data frame with the results of step 4.
+\end{itemize} 
+
+For our example, we will look at the difference in standard deviation using the Reactome pathways and the two groups: ESC and IPS.
+
+<<echo=True,print=False>>=
+resTwoSamDisc=pathVarTwoSamplesDisc(bock.esc_ips,pways.kegg,groups=as.factor(grp),
+test="exact",varStat="sd")
+@
+The three most significant pathways are:
+<<echo=True,print=False>>=
+resTwoSamDisc@tablePway[1:3]
+@
+
+Now, we can use this result to look only at the significant pathways (with a p-value less than 0.01). 
+
+<<echo=True,print=False,results=hide>>=
+sigTwoSamDisc=sigPway(resTwoSamDisc,0.01)
+@
+
+
+We could now look at the visualization of the first pathway "Ribosome". In Figure 5, we can see that categories 1 and 3 (low and high SD) were significantly different (p-value<0.05) between the two groups. We see that overall the IPS sample have more highly variable genes and less lowly variable genes than the ESC sample.
+<<label=2SamDisc_1,echo=True,fig=TRUE,include=FALSE, width=10>>=
+plotPway(resTwoSamDisc,"Ribosome",sigTwoSamDisc)
+@
+\begin{figure} [H]
+  \begin{center}
+\includegraphics[width=10cm]{pathVar-2SamDisc_1} 
+ \caption{Distribution counts of the standard deviation of ESC (group 1) and IPS (group 2) for the "Ribosome" pathway.}
+ \end{center}
+\end{figure}
+
+
+
+
+
+
+
+\end{document}
