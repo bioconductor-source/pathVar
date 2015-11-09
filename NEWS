@@ -1,3 +1,7 @@
+pathVar 1.1.1 (2015-11-09)
+---------------------------
+Changed citation of authors in description file, and capitalized author name from Laurence de torrente to Laurence de Torrente.
+
 pathVar 0.99.3 (2015-09-30)
 ---------------------------
 In sigOneSample, there was a problem when building the list "category". If for each significant pathway all the clusters were significant, then it was building a matrix instead of a list. So we added an if statement to transform the matrix into a list.
