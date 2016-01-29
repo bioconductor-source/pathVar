@@ -12,7 +12,7 @@ This package contains functions used to determine pathways with significant diff
 \tabular{ll}{
 Package: \tab pathVar\cr
 Type: \tab Package\cr
-Version: \tab 1.1.3\cr
+Version: \tab 1.1.4\cr
 Date: \tab 2015-07-13\cr
 License: \tab LGPL \cr
 Depends: \tab R (>= 3.2.2), methods, ggplot2, gridExtra\cr

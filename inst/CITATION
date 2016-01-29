@@ -1,0 +1,5 @@
+year <- sub("-.*", "", meta$Date)
+note <- sprintf("R package version %s", meta$Version)
+
+bibentry(bibtype = "Manual",title="pathVar: Methods to Find Pathways with Significantly Different Variability", author = c(person("Laurence","de Torrente"),person("Samuel","Zimmerman"),person("Jessica","Mar")),year = year, note = note,
+textVersion = paste("de Torrente L, Zimmerman S, and Mar J (2015). pathVar: Methods to Find Pathways with Significantly Different Variability. R package version 1.1.2"))
