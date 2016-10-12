@@ -20,7 +20,7 @@ pathVarTwoSamplesDisc(dat.mat,pways,groups,perc=c(1/3,2/3), test=c("chisq", "exa
 \code{vector} indicating the amount of samples and replicates of each sample.
 }
   \item{perc}{
-numeric \code{vector} of probabiliities with values between 0 and 1. Used to put genes into clusters
+numeric \code{vector} of probabilities with values between 0 and 1. Used to put genes into clusters
 }
   \item{test}{
 a string, either "exact" or "chisq" which are tests to see if clusters in the 2 samples are sig. different from each other  

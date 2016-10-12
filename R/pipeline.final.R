@@ -452,12 +452,17 @@ sigOneSample <- function(pvalue_results, pvalue) {
     # the category and the gene names.
     genes <- olap.pways[significant]
     sigCat <- which(apply(results, 2, function(x) sum(x < pvalue)) > 0)
-    numOfSigCat <- apply(results[, sigCat], 2, function(x) length(which(x < pvalue)))
-    if (length(which(numOfSigCat == nmix)) == length(sigCat)) {
-        category[sigCat] <- lapply(as.list(data.frame(apply(results[, sigCat], 2, function(x) which(x < 
-            pvalue)))), function(x) unique(x))
+    if(length(significant)<2){
+        numOfSigCat <- length(which(results[, sigCat] < pvalue))
+        category[sigCat] <- which(results[, sigCat] < pvalue)
     } else {
-        category[sigCat] <- apply(results[, sigCat], 2, function(x) which(x < pvalue))
+        numOfSigCat <- apply(results[, sigCat], 2, function(x) length(which(x < pvalue)))
+        if (length(which(numOfSigCat == nmix)) == length(sigCat)) {
+            category[sigCat] <- lapply(as.list(data.frame(apply(results[, sigCat], 2, function(x) which(x <
+            pvalue)))), function(x) unique(x))
+        } else {
+            category[sigCat] <- apply(results[, sigCat], 2, function(x) which(x < pvalue))
+        }
     }
     noSigCat <- which(apply(results, 2, function(x) sum(x < pvalue)) < 1)
     if (length(noSigCat) > 0) {
@@ -542,16 +547,21 @@ sigTwoSamplesDisc <- function(pvalue_results, pvalue) {
     sink()
     close(f)
     row.names(results) <- NULL
-    # For each significant pathway we look which category(ies) is are significant and the genes belonging to this(ese) category(ies). If no category is significant we will write 0 in the category and the gene names.
+    # For each significant pathway we look which category(ies) are significant and the genes belonging to this(ese) category(ies). If no category is significant we will write 0 in the category and the gene names.
     genes1 <- olap.pways1[significant]
     genes2 <- olap.pways2[significant]
     sigCat <- which(apply(results, 2, function(x) sum(x < pvalue)) > 0)
-    numOfSigCat <- apply(results[, sigCat], 2, function(x) length(which(x < pvalue)))
-    if (length(which(numOfSigCat == 3)) == length(sigCat)) {
-        category[sigCat] <- lapply(as.list(data.frame(apply(results[, sigCat], 2, function(x) which(x < 
-            pvalue)))), function(x) unique(x))
+    if(length(significant)<2){
+        numOfSigCat <- length(which(results[, sigCat] < pvalue))
+        category[sigCat] <- which(results[, sigCat] < pvalue)
     } else {
-        category[sigCat] <- apply(results[, sigCat], 2, function(x) which(x < pvalue))
+        numOfSigCat <- apply(results[, sigCat], 2, function(x) length(which(x < pvalue)))
+        if (length(which(numOfSigCat == 3)) == length(sigCat)) {
+            category[sigCat] <- lapply(as.list(data.frame(apply(results[, sigCat], 2, function(x) which(x <
+            pvalue)))), function(x) unique(x))
+        } else {
+            category[sigCat] <- apply(results[, sigCat], 2, function(x) which(x < pvalue))
+        }
     }
     noSigCat <- which(apply(results, 2, function(x) sum(x < pvalue)) < 1)
     if (length(noSigCat) > 0) {
@@ -815,6 +825,70 @@ plotTwoSamplesDisc <- function(pvalue_results, pathway, sig) {
     grid.arrange(arrangeGrob(plotPathway1, plotPathway2, nrow = 1))
 }
 
+# function to plot distribution counts for Two sample case
+plotAllTwoSampleDistributionCounts <- function(dat,pvalue_results,perc = c(1/3, 2/3),pvalue,plotName=NULL) {
+    groups <- pvalue_results@groups
+    groupNames <- levels(groups)
+    if (length(groupNames) > 2 | groupNames[1] != "1" | groupNames[2] != "2") {
+        stop("Error: Only 2 groups may be compared. They must be labeled 1 and 2 in the groups parameter.")
+    }
+    groups <- as.factor(as.numeric(groups))
+    #dat.mat_1 <- dat[, which(groups == 1)]
+    #dat.mat_2 <- dat[, which(groups == 2)]
+    if (pvalue_results@varStat == "sd") {
+        vs <- apply(dat, 1, function(x) sd(x, na.rm = TRUE))
+    } else if (pvalue_results@varStat == "cv") {
+        vs <- apply(dat, 1, function(x) sd(x, na.rm = TRUE)/mean(x, na.rm = TRUE))
+    } else if (pvalue_results@varStat == "mean") {
+        vs <- apply(dat, 1, function(x) mean(x, na.rm = TRUE))
+    } else if (pvalue_results@varStat == "mad") {
+        vs <- apply(dat, 1, function(x) mad(x, na.rm = TRUE))
+    }
+    var_1 <- pvalue_results@var1
+    var_2 <- pvalue_results@var2
+    cut <- quantile(vs, probs = perc)
+    # put genes into 1 of 3 distince clusters
+    mixDat1 <- apply(sapply(cut, function(x) var_1 <= x), 1, function(y) if(!is.na(match(TRUE, y))){match(TRUE, y)} else {length(y)+1})
+    mixDat2 <- apply(sapply(cut, function(x) var_2 <= x), 1, function(y) if(!is.na(match(TRUE, y))){match(TRUE, y)} else {length(y)+1})
+    pathDat1 <- as.data.frame(table(mixDat1))
+    colnames(pathDat1) <- c("Cluster", "Number_of_genes")
+    pathDat2 <- as.data.frame(table(mixDat2))
+    colnames(pathDat2) <- c("Cluster", "Number_of_genes")
+    #results <- sapply(significant, function(x) apply(rbind(sigPwayCounts2[x][[1]], sigPwayCounts1[x][[1]]/sum(sigPwayCounts1[x][[1]])),
+    #2, function(y) multinomial.test(c(y[1], sum(sigPwayCounts2[x][[1]]) - y[1]), prob = c(y[2],
+    #1 - y[2]))$p.value))
+    f <- file()
+    sink(file = f)
+    results <- apply(rbind(pathDat2[,2],pathDat1[,2]/pathDat1[,2]/sum(pathDat1[,2])), 2, function(y) multinomial.test(c(y[1], sum(pathDat2[,2]) - y[1]), prob = c(y[2],1 - y[2]))$p.value)
+    sink()
+    close(f)
+    row.names(results) <- NULL
+    numOfSigCat <- length(which(results < pvalue))
+    category <- which(results < pvalue)
+    if (numOfSigCat == 0) {
+        category <- 0
+    }
+    plotPathDat1 <- ggplot(pathDat1, aes(x = Cluster, y = Number_of_genes, fill = Cluster)) + geom_bar(stat = "identity", color = "black", fill = "darkorchid1") + ylab("Number of genes") + theme(legend.position = "none") + ggtitle("Group 1") + xlab("") + ylim(0, max(pathDat1[,2], pathDat2[,2]))
+    plotPathDat2 <- ggplot(pathDat2, aes(x = Cluster, y = Number_of_genes, fill = Cluster)) + geom_bar(stat = "identity", color = "black", fill = "darkorchid1") + ylab("Number of genes") + theme(legend.position = "none") + ggtitle("Group 2") + xlab("") + ylim(0, max(pathDat1[,2], pathDat2[,2]))
+    if(numOfSigCat > 0) {
+        plotPathDat1 <- plotPathDat1 + annotate("text", x = category, y = pathDat1[category +
+        0.1, 2], label = rep("*", numOfSigCat), color = "red", size = 15)
+        plotPathDat2 <- plotPathDat2 + annotate("text", x = category, y = pathDat2[category +
+        0.1, 2], label = rep("*", numOfSigCat), color = "red", size = 15)
+    } else {
+        plotPathDat1 <- plotPathDat1 + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"))
+        plotPathDat2 <- plotPathDat2 + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"))
+    }
+    if(class(plotName)!="NULL") {
+        pdf(plotName,width=10,height=7)
+        grid.arrange(arrangeGrob(plotPathDat1, plotPathDat2, nrow = 1))
+        dev.off()
+    } else {
+        grid.arrange(arrangeGrob(plotPathDat1, plotPathDat2, nrow = 1))
+    }
+}
+
+
 #######################################################
 #plotPway
 #######################################################
@@ -957,3 +1031,51 @@ diagnosticsVarPlots <- function(dat.mat) {
     grid.arrange(arrangeGrob(plotSD, plotMAD, plotCV, nrow = 1))
 }
 
+##### diagnostics Var plots for the 2 sample case
+diagnosticsVarPlotsTwoSample <- function(dat.mat,groups) {
+    groupNames <- levels(groups)
+    if (length(groupNames) > 2 | groupNames[1] != "1" | groupNames[2] != "2") {
+        stop("Error: Only 2 groups may be compared. They must be labeled 1 and 2 in the groups parameter.")
+    }
+    groups <- as.factor(as.numeric(groups))
+    # Compute variability for each gene and each group
+    dat.mat1 <- dat.mat[, which(groups == 1)]
+    dat.mat2 <- dat.mat[, which(groups == 2)]
+    
+    # Compute the sd, mean,cv and mad for each gene
+    dat.sd1 <- apply(dat.mat1, 1, sd, na.rm = TRUE)
+    dat.avg1 <- rowMeans(dat.mat1, na.rm = TRUE)
+    dat.cv1 <- apply(dat.mat1, 1, function(x) {
+        sd(x, na.rm = TRUE)/mean(x, na.rm = TRUE)
+    })
+    dat.mad1 <- apply(dat.mat1, 1, mad, na.rm = TRUE)
+    dat.sd2 <- apply(dat.mat2, 1, sd, na.rm = TRUE)
+    dat.avg2 <- rowMeans(dat.mat2, na.rm = TRUE)
+    dat.cv2 <- apply(dat.mat2, 1, function(x) {
+        sd(x, na.rm = TRUE)/mean(x, na.rm = TRUE)
+    })
+    dat.mad2 <- apply(dat.mat2, 1, mad, na.rm = TRUE)
+    data.sd <- data.frame(standDev = c(dat.sd1,dat.sd2), avg = c(dat.avg1,dat.avg2))
+    data.mad <- data.frame(medAbsDev = c(dat.mad1,dat.mad2), avg = c(dat.avg1,dat.avg2))
+    data.cv <- data.frame(cv = c(dat.cv1,dat.cv2), avg = c(dat.avg1,dat.avg2))
+    # Plot the mean vs the standard deviation and give the correlation between both in the title.
+    plotSD <- ggplot(data.sd, aes(x = avg, y = standDev)) + geom_point(colour = "grey60") +
+    stat_smooth(method = loess) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+    panel.background = element_blank(), axis.line = element_line(colour = "black")) + xlab("Average") +
+    ylab("Standard Deviation (SD)") + ggtitle(paste(c("Standard Deviation [ R=", round(cor(data.sd$standDev,
+    data.sd$avg), 3), "]"), collapse = " "))
+    # Plot the mean vs the median absolute deviation and give the correlation between both in the title.
+    plotMAD <- ggplot(data.mad, aes(x = avg, y = medAbsDev)) + geom_point(colour = "grey60") +
+    stat_smooth(method = loess) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+    panel.background = element_blank(), axis.line = element_line(colour = "black")) + xlab("Average") +
+    ylab("Median Absolute Deviation (MAD)") + ggtitle(paste(c("Median Absolute Deviation [ R=",
+    round(cor(data.mad$medAbsDev,data.mad$avg), 3), "]"), collapse = " "))
+    # Plot the mean vs the coefficient of variation and give the correlation between both in the title.
+    plotCV <- ggplot(data.cv, aes(x = avg, y = cv)) + geom_point(colour = "grey60") + stat_smooth(method = loess) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(),
+    axis.line = element_line(colour = "black")) + xlab("Average") + ylab("Coefficient of Variation (CV)") +
+    ggtitle(paste(c("Coefficient of Variation [ R=", round(cor(data.cv$cv,
+    data.cv$avg), 3), "]"),
+    collapse = " "))
+    grid.arrange(arrangeGrob(plotSD, plotMAD, plotCV, nrow = 1))
+}

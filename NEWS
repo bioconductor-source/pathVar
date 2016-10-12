@@ -1,3 +1,7 @@
+pathVar 1.1.6 (2016-07-29)
+
+We added the function plotAllTwoSampleDistributionCounts which plots the distribution of counts for the two sample case. We also added the function diagnosticsVarPlotsTwoSample which makes 3 different plots that helps visualize the association between a chosen variability statistic (SD, MAD, and COV) and the mean expression. It is best to choose the variability statistic that has the smallest correlation with the mean. Lastly we fixed a bug that occurs when only one significant pathway is found.
+
 pathVar 1.1.5 (2016-02-09)
 
 Change citation to reflect correct version
