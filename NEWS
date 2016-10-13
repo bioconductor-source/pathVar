@@ -1,17 +1,21 @@
-pathVar 1.1.6 (2016-07-29)
+pathVar 1.3.1 (2016-10-13)
+---------------------------
+Updated pathVar to remove any warnings for Bioconductor release.
 
+pathVar 1.1.6 (2016-07-29)
+---------------------------
 We added the function plotAllTwoSampleDistributionCounts which plots the distribution of counts for the two sample case. We also added the function diagnosticsVarPlotsTwoSample which makes 3 different plots that helps visualize the association between a chosen variability statistic (SD, MAD, and COV) and the mean expression. It is best to choose the variability statistic that has the smallest correlation with the mean. Lastly we fixed a bug that occurs when only one significant pathway is found.
 
 pathVar 1.1.5 (2016-02-09)
-
+---------------------------
 Change citation to reflect correct version
 
 pathVar 1.1.4 (2015-1-29)
-
+---------------------------
 Official add CITATION file correctly
 
 pathVar 1.1.2 (2015-12-17)
-
+---------------------------
 Added CITATION file and corrected authors names.
 
 pathVar 1.1.1 (2015-11-09)
@@ -38,11 +42,11 @@ Removed import reshape from the DESCRIPTION and NAMESPACE files because data.tab
 
 fixed indentation in R code and increased line widths to 90.
 
-changed the “cop-and-append’ pattern when filling pways$GENES list to “pre-allocate and fill” where we allocate space in the list and then fill it.
+changed the "copy-and-append" pattern when filling pways$GENES list to "pre-allocate and fill" where we allocate space in the list and then fill it.
 
-Changed varStat parameter to restrict selection on inputs to “sd”, ”mean”, ”mad”, or “cv” in functions pathVarOneSample, pathVarTwoSamplesCont, and pathVarTwoSamplesDisc
+Changed varStat parameter to restrict selection on inputs to "sd", "mean", "mad", or "cv" in functions pathVarOneSample, pathVarTwoSamplesCont, and pathVarTwoSamplesDisc
 
-Changed test parameter to restrict selection on inputs to “chisq” or “exact” in functions pathVarOneSample and pathVarTwoSamplesDisc 
+Changed test parameter to restrict selection on inputs to "chisq" or "exact" in functions pathVarOneSample and pathVarTwoSamplesDisc 
 
 Use rowMeans() function instead of apply statement over matrix
 
@@ -54,8 +58,7 @@ Removed pathVar-internal manual page.
 
 pathVar 0.99.2 (2015-08-21)
 ---------------------------
-
-Changed confusing variable names “plotPway” to “plotPathway” in plotTwoSamples and plotOneSample functions so the function plotPway consistently works.
+Changed confusing variable names "plotPway" to "plotPathway" in plotTwoSamples and plotOneSample functions so the function plotPway consistently works.
 
 Corrected error at the beginning of plotTwoSamples and plotOneSample. We are splitting the title into two parts when the number of character is more than 39. The split occurs at the first word where the cumulative sum of the characters is more than 34. The problem was if the title is more than 39 characters and the cumulative sum of every words but the last is less than 34. We added an if statement in this case to split the title at the second-to-last word. 
 
@@ -65,12 +68,10 @@ We also changed "category[noSigCat]=0" to category[[noSigCat]]=0 inside the if s
 
 pathVar 0.99.1 (2015-08-21)
 ---------------------------
-
 Subscribed to bioc-devel mailing list.
 
 pathVar 0.99.0 (2015-07-10)
 ---------------------------
-
 First Bioconductor Release
 
-See vignette(“pathVar") for an introduction to the package.
+See vignette("pathVar") for an introduction to the package.
