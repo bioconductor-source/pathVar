@@ -2,10 +2,10 @@ Package: pathVar
 Type: Package
 Title: Methods to Find Pathways with Significantly Different
         Variability
-Version: 1.11.1
-Date: 2018-05-15
+Version: 1.11.2
+Date: 2018-06-29
 Author: Laurence de Torrente, Samuel Zimmerman, Jessica Mar
-Maintainer: Samuel Zimmerman <sezimmer@einstein.yu.edu>
+Maintainer: Samuel Zimmerman <samuel.e.zimmerman@gmail.com>
 Description: This package contains the functions to find the pathways
         that have significantly different variability than a reference
         gene set. It also finds the categories from this pathway that
