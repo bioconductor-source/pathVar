@@ -2,7 +2,7 @@ Package: pathVar
 Type: Package
 Title: Methods to Find Pathways with Significantly Different
         Variability
-Version: 1.33.0
+Version: 1.33.1
 Date: 2018-06-29
 Author: Laurence de Torrente, Samuel Zimmerman, Jessica Mar
 Maintainer: Samuel Zimmerman <samuel.e.zimmerman@gmail.com>
@@ -13,10 +13,11 @@ Description: This package contains the functions to find the pathways
         genes are separated into clusters by their level of
         variability.
 License: LGPL (>= 2.0)
-Collate: classdef.R pipeline.final.R
+Collate: classdef.R pipeline.final.R zzz.R
 LazyData: true
 Depends: R (>= 3.3.0), methods, ggplot2, gridExtra
 Imports: EMT, mclust, Matching, data.table, stats, grDevices, graphics, utils
 biocViews: GeneticVariability, GeneSetEnrichment, Pathways
 NeedsCompilation: no
 Packaged: 2016-07-29 21:13:21 UTC; SamEZ
+PackageStatus: Deprecated
